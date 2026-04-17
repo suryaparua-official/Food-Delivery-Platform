@@ -2,11 +2,21 @@ import axios from "axios";
 import { adminService } from "../main";
 import toast from "react-hot-toast";
 
+interface IRestaurant {
+  _id: string;
+  image: string;
+  name: string;
+  phone: string;
+  autoLocation?: {
+    formattedAddress: string;
+  };
+}
+
 const AdminRestaurantCard = ({
   restaurant,
   onVerify,
 }: {
-  restaurant: any;
+  restaurant: IRestaurant;
   onVerify: () => void;
 }) => {
   const verify = async () => {
@@ -18,12 +28,18 @@ const AdminRestaurantCard = ({
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        }
+        },
       );
       toast.success("Restaurant verified");
       onVerify();
-    } catch (error) {
-      toast.error("failed ot verify restaurant");
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        toast.error(
+          error.response?.data?.message || "Failed to verify restaurant",
+        );
+      } else {
+        toast.error("Failed to verify restaurant");
+      }
     }
   };
   return (

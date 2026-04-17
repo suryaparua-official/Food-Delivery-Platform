@@ -36,13 +36,17 @@ const RiderOrderRequest = ({ orderId, onAccepted }: Props) => {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        }
+        },
       );
 
       toast.success("Order Accepted");
       onAccepted();
-    } catch (error: any) {
-      toast.error(error.response.data.message);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        toast.error(error.response?.data?.message || "Failed to accept order");
+      } else {
+        toast.error("Failed to accept order");
+      }
       onAccepted();
     } finally {
       setAccepting(false);
