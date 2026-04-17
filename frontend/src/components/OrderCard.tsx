@@ -59,13 +59,17 @@ const OrderCard = ({ order, onStatusUpdate }: props) => {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        }
+        },
       );
 
       toast.success("Order updated");
       onStatusUpdate?.();
-    } catch (error: any) {
-      toast.error(error.response.data.message);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        toast.error(error.response?.data?.message || "Something went wrong");
+      } else {
+        toast.error("Something went wrong");
+      }
     } finally {
       setLoading(false);
     }
@@ -77,7 +81,7 @@ const OrderCard = ({ order, onStatusUpdate }: props) => {
 
         <span
           className={`rounded-full px-3 py-1 text-xs font-medium ${statusColor(
-            order.status
+            order.status,
           )}`}
         >
           {order.status.replaceAll("_", " ")}

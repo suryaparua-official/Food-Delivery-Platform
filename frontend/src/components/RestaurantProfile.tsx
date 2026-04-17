@@ -28,14 +28,17 @@ const RestaurantProfile = ({ restaurant, isSeller, onUpdate }: props) => {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        }
+        },
       );
 
       toast.success(data.message);
       setIsOpen(data.restaurant.isOpen);
-    } catch (error: any) {
-      console.log(error);
-      toast.error(error.response.data.message);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        toast.error(error.response?.data?.message || "Something went wrong");
+      } else {
+        toast.error("Something went wrong");
+      }
     }
   };
 
@@ -49,15 +52,18 @@ const RestaurantProfile = ({ restaurant, isSeller, onUpdate }: props) => {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        }
+        },
       );
 
       toast.success(data.message);
       onUpdate(data.restaurant);
       setEditMode(false);
-    } catch (error) {
-      console.log(error);
-      toast.error("Failed to update");
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        toast.error(error.response?.data?.message || "Failed to update");
+      } else {
+        toast.error("Failed to update");
+      }
     } finally {
       setLoading(false);
     }
@@ -73,7 +79,7 @@ const RestaurantProfile = ({ restaurant, isSeller, onUpdate }: props) => {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-      }
+      },
     );
     localStorage.setItem("token", "");
     setIsAuth(false);

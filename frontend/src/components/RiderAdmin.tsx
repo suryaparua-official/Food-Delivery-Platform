@@ -2,11 +2,20 @@ import toast from "react-hot-toast";
 import { adminService } from "../main";
 import axios from "axios";
 
+interface IRider {
+  _id: string;
+  picture: string;
+  phoneNumber: string;
+  phone: string;
+  aadharNumber: string;
+  drivingLicenseNumber: string;
+}
+
 const RiderAdmin = ({
   rider,
   onVerify,
 }: {
-  rider: any;
+  rider: IRider;
   onVerify: () => void;
 }) => {
   const verify = async () => {
@@ -18,12 +27,16 @@ const RiderAdmin = ({
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        }
+        },
       );
       toast.success("Restaurant verified");
       onVerify();
-    } catch (error) {
-      toast.error("failed ot verify restaurant");
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        toast.error(error.response?.data?.message || "Failed to verify rider");
+      } else {
+        toast.error("Failed to verify rider");
+      }
     }
   };
   return (

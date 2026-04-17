@@ -51,9 +51,12 @@ const MenuItems = ({ items, onItemDeleted, isSeller }: MenuItemsProps) => {
 
       toast.success(data.message);
       onItemDeleted();
-    } catch (error) {
-      console.log(error);
-      toast.error("Failed to update status");
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        toast.error(error.response?.data?.message || "Something went wrong");
+      } else {
+        toast.error("Something went wrong");
+      }
     }
   };
 
@@ -78,8 +81,12 @@ const MenuItems = ({ items, onItemDeleted, isSeller }: MenuItemsProps) => {
 
       toast.success(data.message);
       fetchCart();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to add");
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        toast.error(error.response?.data?.message || "Something went wrong");
+      } else {
+        toast.error("Something went wrong");
+      }
     } finally {
       setLoadingItemId(null);
     }
