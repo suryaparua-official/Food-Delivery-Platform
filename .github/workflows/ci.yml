@@ -27,26 +27,26 @@ jobs:
       # -------------------------
       - name: Install Dependencies
         run: |
-          cd frontend && npm ci
+          npm ci --prefix frontend
 
-          cd ../backend/admin-service && npm ci
-          cd ../auth-service && npm ci
-          cd ../realtime-service && npm ci
-          cd ../restaurant-service && npm ci
-          cd ../rider-service && npm ci
-          cd ../utils-service && npm ci
+          npm ci --prefix backend/admin-service
+          npm ci --prefix backend/auth-service
+          npm ci --prefix backend/realtime-service
+          npm ci --prefix backend/restaurant-service
+          npm ci --prefix backend/rider-service
+          npm ci --prefix backend/utils-service
 
       # -------------------------
       - name: Lint
         run: |
-          cd frontend && npm run lint
+          npm run lint --prefix frontend
 
-          cd ../backend/admin-service && npm run lint
-          cd ../auth-service && npm run lint
-          cd ../realtime-service && npm run lint
-          cd ../restaurant-service && npm run lint
-          cd ../rider-service && npm run lint
-          cd ../utils-service && npm run lint
+          npm run lint --prefix backend/admin-service
+          npm run lint --prefix backend/auth-service
+          npm run lint --prefix backend/realtime-service
+          npm run lint --prefix backend/restaurant-service
+          npm run lint --prefix backend/rider-service
+          npm run lint --prefix backend/utils-service
 
       # -------------------------
       - name: SonarQube Scan
