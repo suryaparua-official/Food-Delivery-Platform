@@ -37,8 +37,8 @@ export const AppProvider = ({ children }: AppProviderProps) => {
 
       setUser(data);
       setIsAuth(true);
-    } catch (error) {
-      console.log(error);
+    } catch (err) {
+      console.log(err);
     } finally {
       setLoading(false);
     }
@@ -67,8 +67,8 @@ export const AppProvider = ({ children }: AppProviderProps) => {
       setCart(data.cart || []);
       setSubTotal(data.subtotal || 0);
       setQuauntity(data.cartLength);
-    } catch (error) {
-      console.log(error);
+    } catch (err) {
+      console.log(err);
     }
   }
 
@@ -109,7 +109,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
             "Your Location",
         );
         setLoadingLocation(false);
-      } catch (error) {
+      } catch {
         setLocation({
           latitude,
           longitude,

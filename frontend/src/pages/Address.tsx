@@ -58,7 +58,7 @@ const LocateMeButton = ({
         map.flyTo([latitude, longitude], 16, { animate: true });
         onLocate(latitude, longitude);
       },
-      () => toast.error("Location permission denied")
+      () => toast.error("Location permission denied"),
     );
   };
   return (
@@ -87,7 +87,7 @@ const AddAddressPage = () => {
   const fetchFormattedAddress = async (lat: number, lng: number) => {
     try {
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
       );
       const data = await res.json();
       setFormattedAddress(data.display_name || "");
@@ -143,7 +143,7 @@ const AddAddressPage = () => {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        }
+        },
       );
       toast.success("Address added");
       setMobile("");
@@ -152,8 +152,12 @@ const AddAddressPage = () => {
       setLatitude(null);
       setLongitude(null);
       fetchAddresses();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed");
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        toast.error(error.response?.data?.message || "Failed");
+      } else {
+        toast.error("Something went wrong");
+      }
     } finally {
       setAdding(false);
     }
