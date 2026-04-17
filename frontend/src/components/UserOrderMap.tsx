@@ -4,12 +4,12 @@ import "leaflet/dist/leaflet.css";
 import "leaflet-routing-machine";
 import { useEffect } from "react";
 
-declare module "leaflet" {
-  namespace Routing {
-    function control(options: any): any;
-    function osrmv1(options?: any): any;
-  }
-}
+// declare module "leaflet" {
+//   namespace Routing {
+//     function control(options: any): any;
+//     function osrmv1(options?: any): any;
+//   }
+// }
 
 const riderIcon = new L.DivIcon({
   html: "🛵",
@@ -33,7 +33,7 @@ const Routing = ({
   const map = useMap();
 
   useEffect(() => {
-    const control = L.Routing.control({
+    const control = (L as any).Routing.control({
       waypoints: [L.latLng(from), L.latLng(to)],
       lineOptions: {
         styles: [{ color: "#E23744", weight: 5 }],
@@ -42,7 +42,7 @@ const Routing = ({
       draggableWaypoints: false,
       show: false,
       createMarker: () => null,
-      router: L.Routing.osrmv1({
+      router: (L as any).Routing.osrmv1({
         serviceUrl: "https://router.project-osrm.org/route/v1",
       }),
     }).addTo(map);

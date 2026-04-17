@@ -67,17 +67,12 @@ const RiderOrderMap = ({ order }: Props) => {
     null,
   );
 
-  if (
-    order.deliveryAddress.latitude == null ||
-    order.deliveryAddress.longitude == null
-  ) {
-    return null;
-  }
-
-  const deliveryLocation: [number, number] = [
-    order.deliveryAddress.latitude,
-    order.deliveryAddress.longitude,
-  ];
+  // ✅ SAFE deliveryLocation
+  const deliveryLocation: [number, number] | null =
+    order.deliveryAddress.latitude != null &&
+    order.deliveryAddress.longitude != null
+      ? [order.deliveryAddress.latitude, order.deliveryAddress.longitude]
+      : null;
 
   useEffect(() => {
     const fetchLocation = () => {
@@ -117,7 +112,10 @@ const RiderOrderMap = ({ order }: Props) => {
     return () => clearInterval(interval);
   }, [order.userId]);
 
+  // ✅ hook fix
+  if (!deliveryLocation) return null;
   if (!riderLocation) return null;
+
   return (
     <div className="rounded-xl bg-white shadow-sm p-3">
       <MapContainer
