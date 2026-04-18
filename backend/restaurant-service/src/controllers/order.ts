@@ -39,7 +39,7 @@ export const createOrder = TryCatch(async (req: AuthenticatedRequest, res) => {
     lat1: number,
     lon1: number,
     lat2: number,
-    lon2: number
+    lon2: number,
   ): number => {
     const R = 6371;
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -92,7 +92,7 @@ export const createOrder = TryCatch(async (req: AuthenticatedRequest, res) => {
     address.location.coordinates[1],
     address.location.coordinates[0],
     restaurant.autoLocation.coordinates[1],
-    restaurant.autoLocation.coordinates[0]
+    restaurant.autoLocation.coordinates[0],
   );
 
   let subtotal = 0;
@@ -221,7 +221,7 @@ export const fetchRestaurantOrders = TryCatch(
       count: orders.length,
       orders,
     });
-  }
+  },
 );
 
 const ALLOWED_STATUSES = ["accepted", "preparing", "ready_for_rider"] as const;
@@ -291,14 +291,14 @@ export const updateOrderStatus = TryCatch(
         headers: {
           "x-internal-key": process.env.INTERNAL_SERVICE_KEY,
         },
-      }
+      },
     );
 
     // now assign riders
     if (status === "ready_for_rider") {
       console.log(
         "Publishing Order ready for rider event for order",
-        order._id
+        order._id,
       );
 
       await publishEvent("ORDER_READY_FOR_RIDER", {
@@ -314,7 +314,7 @@ export const updateOrderStatus = TryCatch(
       message: "order status updated successfully",
       order,
     });
-  }
+  },
 );
 
 export const getMyOrders = TryCatch(async (req: AuthenticatedRequest, res) => {
@@ -355,7 +355,7 @@ export const fetchSingleOrder = TryCatch(
     }
 
     res.json(order);
-  }
+  },
 );
 
 export const assignRiderToOrder = TryCatch(async (req, res) => {
@@ -394,7 +394,7 @@ export const assignRiderToOrder = TryCatch(async (req, res) => {
       riderPhone,
       status: "rider_assigned",
     },
-    { new: true }
+    { new: true },
   );
 
   await axios.post(
@@ -408,7 +408,7 @@ export const assignRiderToOrder = TryCatch(async (req, res) => {
       headers: {
         "x-internal-key": process.env.INTERNAL_SERVICE_KEY,
       },
-    }
+    },
   );
   await axios.post(
     `${process.env.REALTIME_SERVICE}/api/v1/internal/emit`,
@@ -421,7 +421,7 @@ export const assignRiderToOrder = TryCatch(async (req, res) => {
       headers: {
         "x-internal-key": process.env.INTERNAL_SERVICE_KEY,
       },
-    }
+    },
   );
 
   res.json({
@@ -438,7 +438,8 @@ export const getCurrentOrderForRider = TryCatch(async (req, res) => {
     });
   }
 
-  const { riderId } = req.query;
+  const riderId =
+    typeof req.query.riderId === "string" ? req.query.riderId : undefined;
 
   if (!riderId) {
     return res.status(400).json({
@@ -447,7 +448,7 @@ export const getCurrentOrderForRider = TryCatch(async (req, res) => {
   }
 
   const order = await Order.findOne({
-    riderId,
+    riderId: riderId,
     status: { $ne: "delivered" },
   }).populate("restaurantId");
 
@@ -493,7 +494,7 @@ export const updateOrderStatusRider = TryCatch(async (req, res) => {
         headers: {
           "x-internal-key": process.env.INTERNAL_SERVICE_KEY,
         },
-      }
+      },
     );
 
     await axios.post(
@@ -507,7 +508,7 @@ export const updateOrderStatusRider = TryCatch(async (req, res) => {
         headers: {
           "x-internal-key": process.env.INTERNAL_SERVICE_KEY,
         },
-      }
+      },
     );
 
     return res.json({
@@ -531,7 +532,7 @@ export const updateOrderStatusRider = TryCatch(async (req, res) => {
         headers: {
           "x-internal-key": process.env.INTERNAL_SERVICE_KEY,
         },
-      }
+      },
     );
 
     await axios.post(
@@ -545,7 +546,7 @@ export const updateOrderStatusRider = TryCatch(async (req, res) => {
         headers: {
           "x-internal-key": process.env.INTERNAL_SERVICE_KEY,
         },
-      }
+      },
     );
 
     return res.json({
