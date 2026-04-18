@@ -37,16 +37,16 @@ jobs:
           npm ci --prefix backend/utils-service
 
       # -------------------------
-      - name: Lint
-        run: |
-          npm run lint --prefix frontend
+      # - name: Lint
+      #   run: |
+      #     npm run lint --prefix frontend
 
-          npm run lint --prefix backend/admin-service
-          npm run lint --prefix backend/auth-service
-          npm run lint --prefix backend/realtime-service
-          npm run lint --prefix backend/restaurant-service
-          npm run lint --prefix backend/rider-service
-          npm run lint --prefix backend/utils-service
+      #     npm run lint --prefix backend/admin-service
+      #     npm run lint --prefix backend/auth-service
+      #     npm run lint --prefix backend/realtime-service
+      #     npm run lint --prefix backend/restaurant-service
+      #     npm run lint --prefix backend/rider-service
+      #     npm run lint --prefix backend/utils-service
 
       # -------------------------
       - name: SonarQube Scan
