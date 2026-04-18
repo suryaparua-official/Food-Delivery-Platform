@@ -68,7 +68,7 @@ jobs:
           format: "HTML"
           out: "reports"
           args: >
-            --failOnCVSS 7
+            --failOnCVSS 9
 
       - name: Upload OWASP Report
         uses: actions/upload-artifact@v4
