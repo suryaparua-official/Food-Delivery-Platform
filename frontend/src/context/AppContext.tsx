@@ -10,7 +10,7 @@ import { authService, restaurantService } from "../main";
 import type { AppContextType, ICart, LocationData, User } from "../types";
 import { Toaster } from "react-hot-toast";
 
-export const AppContext = createContext<AppContextType | undefined>(undefined);
+const AppContext = createContext<AppContextType | undefined>(undefined);
 
 interface AppProviderProps {
   children: ReactNode;
@@ -37,19 +37,12 @@ export const AppProvider = ({ children }: AppProviderProps) => {
 
       setUser(data);
       setIsAuth(true);
-    } catch (err) {
-      console.log(err);
+    } catch (error) {
+      console.log(error);
     } finally {
       setLoading(false);
     }
   }
-
-  // ✅ Logout Function Added
-  const logout = () => {
-    localStorage.removeItem("token");
-    setUser(null);
-    setIsAuth(false);
-  };
 
   const [cart, setCart] = useState<ICart[]>([]);
   const [subTotal, setSubTotal] = useState(0);
@@ -67,8 +60,8 @@ export const AppProvider = ({ children }: AppProviderProps) => {
       setCart(data.cart || []);
       setSubTotal(data.subtotal || 0);
       setQuauntity(data.cartLength);
-    } catch (err) {
-      console.log(err);
+    } catch (error) {
+      console.log(error);
     }
   }
 
@@ -109,7 +102,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
             "Your Location",
         );
         setLoadingLocation(false);
-      } catch {
+      } catch (error) {
         setLocation({
           latitude,
           longitude,
@@ -137,10 +130,10 @@ export const AppProvider = ({ children }: AppProviderProps) => {
         fetchCart,
         quauntity,
         subTotal,
-        logout,
       }}
     >
       {children}
+
       <Toaster />
     </AppContext.Provider>
   );

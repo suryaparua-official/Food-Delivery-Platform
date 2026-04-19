@@ -14,13 +14,14 @@ interface Address {
   mobile: number;
 }
 
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 const Checkout = () => {
   const { cart, subTotal, quauntity } = useAppData();
 
   const [addresses, setAddresses] = useState<Address[]>([]);
 
   const [selectedAddressId, setselectedAddressId] = useState<string | null>(
-    null
+    null,
   );
 
   const [loadingAddress, setLoadingAddress] = useState(true);
@@ -43,7 +44,7 @@ const Checkout = () => {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
-          }
+          },
         );
 
         setAddresses(data || []);
@@ -90,7 +91,7 @@ const Checkout = () => {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        }
+        },
       );
 
       return data;
@@ -154,7 +155,7 @@ const Checkout = () => {
     }
   };
 
-  const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+  //const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
   const payWithStripe = async () => {
     try {
@@ -171,7 +172,7 @@ const Checkout = () => {
           `${utilsService}/api/payment/stripe/create`,
           {
             orderId,
-          }
+          },
         );
 
         if (data.url) {
@@ -291,13 +292,12 @@ const Checkout = () => {
           )}
           Pay With Razorpay
         </button>
-
         <button
           disabled={!selectedAddressId || loadingStripe || creatingOrder}
           onClick={payWithStripe}
           className="flex w-full items-center justify-center gap-2 rounded-lg bg-black py-3 text-sm font-semibold text-white hover:bg-gray-800 disabled:opacity-50"
         >
-          {loadingRazorpay ? (
+          {loadingStripe ? (
             <BiLoader size={18} className="animate-spin" />
           ) : (
             <BiCreditCard size={18} />
