@@ -44,6 +44,13 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     }
   }
 
+  // ✅ Logout Function Added
+  const logout = () => {
+    localStorage.removeItem("token");
+    setUser(null);
+    setIsAuth(false);
+  };
+
   const [cart, setCart] = useState<ICart[]>([]);
   const [subTotal, setSubTotal] = useState(0);
   const [quauntity, setQuauntity] = useState(0);
@@ -130,10 +137,10 @@ export const AppProvider = ({ children }: AppProviderProps) => {
         fetchCart,
         quauntity,
         subTotal,
+        logout,
       }}
     >
       {children}
-
       <Toaster />
     </AppContext.Provider>
   );
