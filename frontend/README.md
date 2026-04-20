@@ -122,86 +122,86 @@ The platform features real-time order tracking with WebSocket integration, inter
 
 ```mermaid
 graph TB
-    subgraph Client["Client Layer"]
+    subgraph Client["🖥️ CLIENT LAYER"]
         WEB["Web Browser<br/>React 19 + TypeScript"]
-        MOBILE["Mobile App<br/>Optional"]
+        MOBILE["Mobile App"]
     end
 
-    subgraph Frontend["Frontend"]
-        REACT["React SPA<br/>Vite + Tailwind CSS"]
+    subgraph Frontend["🎨 FRONTEND LAYER"]
+        REACT["React SPA<br/>Vite + Tailwind CSS<br/>Socket.io Client"]
     end
 
-    subgraph Gateway["API Gateway"]
+    subgraph Gateway["🚪 API GATEWAY"]
         NGINX["Nginx<br/>Load Balancer & Router"]
     end
 
-    subgraph Services["Microservices"]
-        AUTH["Auth Service<br/>Port 5000<br/>JWT & OAuth"]
-        RESTAURANT["Restaurant Service<br/>Port 5001<br/>Menu & Orders"]
-        UTILS["Utils Service<br/>Port 5002<br/>Email/SMS"]
-        RIDER["Rider Service<br/>Port 5005<br/>Delivery & Tracking"]
-        REALTIME["Realtime Service<br/>Port 5004<br/>WebSocket & Socket.io"]
-        ADMIN["Admin Service<br/>Port 5006<br/>Analytics"]
+    subgraph Services["⚙️ MICROSERVICES"]
+        AUTH["Auth Service:5000<br/>JWT & OAuth"]
+        RESTAURANT["Restaurant:5001<br/>Menu & Orders"]
+        UTILS["Utils:5002<br/>Email/SMS"]
+        REALTIME["Realtime:5004<br/>WebSocket"]
+        RIDER["Rider:5005<br/>Delivery Tracking"]
+        ADMIN["Admin:5006<br/>Analytics"]
     end
 
-    subgraph Database["Data Layer"]
-        MONGO["MongoDB<br/>Collections & Documents"]
-        CACHE["Redis Cache<br/>Session & Cache"]
+    subgraph Infrastructure["📦 INFRASTRUCTURE"]
+        MONGO["MongoDB<br/>Primary Database"]
+        CACHE["Redis<br/>Cache & Sessions"]
+        RABBITMQ["RabbitMQ<br/>Message Bus"]
     end
 
-    subgraph MessageQueue["Message Queue"]
-        RABBITMQ["RabbitMQ<br/>Event Bus & Messaging"]
-    end
-
-    subgraph ExternalServices["External Services"]
-        GOOGLE["Google OAuth<br/>Authentication"]
-        STRIPE["Stripe API<br/>Payment Processing"]
-        MAPS["Leaflet Maps<br/>Location & Routing"]
+    subgraph External["🔗 EXTERNAL SERVICES"]
+        GOOGLE["Google OAuth"]
+        STRIPE["Stripe Payment"]
+        MAPS["Leaflet Maps"]
     end
 
     WEB -->|HTTP/WebSocket| REACT
-    REACT -->|API Calls| NGINX
-    MOBILE -->|API Calls| NGINX
+    MOBILE -->|HTTP/WebSocket| REACT
 
-    NGINX -->|Route| AUTH
-    NGINX -->|Route| RESTAURANT
-    NGINX -->|Route| UTILS
-    NGINX -->|Route| RIDER
-    NGINX -->|Route| REALTIME
-    NGINX -->|Route| ADMIN
-
-    AUTH -->|Read/Write| MONGO
-    RESTAURANT -->|Read/Write| MONGO
-    UTILS -->|Read/Write| MONGO
-    RIDER -->|Read/Write| MONGO
-    ADMIN -->|Read/Write| MONGO
-
-    AUTH -->|Cache| CACHE
-    RESTAURANT -->|Cache| CACHE
-    RIDER -->|Cache| CACHE
-
-    AUTH -->|Publish/Subscribe| RABBITMQ
-    RESTAURANT -->|Publish/Subscribe| RABBITMQ
-    UTILS -->|Publish/Subscribe| RABBITMQ
-    RIDER -->|Publish/Subscribe| RABBITMQ
-    REALTIME -->|Publish/Subscribe| RABBITMQ
-
-    AUTH -->|OAuth| GOOGLE
-    RESTAURANT -->|Payment| STRIPE
-    RIDER -->|Mapping| MAPS
-    REACT -->|Auth| GOOGLE
+    REACT -->|API Requests| NGINX
+    REACT -->|WebSocket| REALTIME
+    REACT -->|OAuth| GOOGLE
     REACT -->|Payment| STRIPE
     REACT -->|Mapping| MAPS
 
+    NGINX -->|Routes| AUTH
+    NGINX -->|Routes| RESTAURANT
+    NGINX -->|Routes| UTILS
+    NGINX -->|Routes| RIDER
+    NGINX -->|Routes| ADMIN
+
+    AUTH -->|Read/Write| MONGO
+    AUTH -->|Cache| CACHE
+    AUTH -->|Event| RABBITMQ
+
+    RESTAURANT -->|Read/Write| MONGO
+    RESTAURANT -->|Cache| CACHE
+    RESTAURANT -->|Event| RABBITMQ
+
+    UTILS -->|Read/Write| MONGO
+    UTILS -->|Event| RABBITMQ
+
+    RIDER -->|Read/Write| MONGO
+    RIDER -->|Cache| CACHE
+    RIDER -->|Event| RABBITMQ
+
+    ADMIN -->|Read/Write| MONGO
+    ADMIN -->|Event| RABBITMQ
+
+    REALTIME -->|Subscribe| RABBITMQ
     REALTIME -->|WebSocket| REACT
 
-    style Client fill:#e1f5ff
-    style Frontend fill:#fff3e0
-    style Gateway fill:#f3e5f5
-    style Services fill:#e8f5e9
-    style Database fill:#fce4ec
-    style MessageQueue fill:#fff9c4
-    style ExternalServices fill:#f1f8e9
+    AUTH -->|OAuth| GOOGLE
+    RESTAURANT -->|Payment| STRIPE
+    RIDER -->|Location| MAPS
+
+    style Client fill:#B3E5FC,stroke:#01579B,stroke-width:2px,color:#000
+    style Frontend fill:#FFE0B2,stroke:#E65100,stroke-width:2px,color:#000
+    style Gateway fill:#F3E5F5,stroke:#4A148C,stroke-width:2px,color:#000
+    style Services fill:#C8E6C9,stroke:#1B5E20,stroke-width:2px,color:#000
+    style Infrastructure fill:#FFCCBC,stroke:#BF360C,stroke-width:2px,color:#000
+    style External fill:#F0F4C3,stroke:#827717,stroke-width:2px,color:#000
 ```
 
 ### Architecture Overview
@@ -543,33 +543,3 @@ For issues, questions, or suggestions:
 - Create an issue on GitHub
 - Check existing documentation
 - Contact the development team
-
----
-
-Built with care for food lovers everywhere
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-globalIgnores(['dist']),
-{
-files: ['**/*.{ts,tsx}'],
-extends: [
-// Other configs...
-// Enable lint rules for React
-reactX.configs['recommended-typescript'],
-// Enable lint rules for React DOM
-reactDom.configs.recommended,
-],
-languageOptions: {
-parserOptions: {
-project: ['./tsconfig.node.json', './tsconfig.app.json'],
-tsconfigRootDir: import.meta.dirname,
-},
-// other options...
-},
-},
-])
-
-```
-
-```
