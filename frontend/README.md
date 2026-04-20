@@ -116,6 +116,120 @@ The platform features real-time order tracking with WebSocket integration, inter
 - **TypeScript ESLint** - TypeScript-specific linting rules
 - **Vite React Plugin** - Fast refresh for React development
 
+## Architecture
+
+### System Architecture Diagram
+
+```mermaid
+graph TB
+    subgraph Client["Client Layer"]
+        WEB["Web Browser<br/>React 19 + TypeScript"]
+        MOBILE["Mobile App<br/>Optional"]
+    end
+
+    subgraph Frontend["Frontend"]
+        REACT["React SPA<br/>Vite + Tailwind CSS"]
+    end
+
+    subgraph Gateway["API Gateway"]
+        NGINX["Nginx<br/>Load Balancer & Router"]
+    end
+
+    subgraph Services["Microservices"]
+        AUTH["Auth Service<br/>Port 5000<br/>JWT & OAuth"]
+        RESTAURANT["Restaurant Service<br/>Port 5001<br/>Menu & Orders"]
+        UTILS["Utils Service<br/>Port 5002<br/>Email/SMS"]
+        RIDER["Rider Service<br/>Port 5005<br/>Delivery & Tracking"]
+        REALTIME["Realtime Service<br/>Port 5004<br/>WebSocket & Socket.io"]
+        ADMIN["Admin Service<br/>Port 5006<br/>Analytics"]
+    end
+
+    subgraph Database["Data Layer"]
+        MONGO["MongoDB<br/>Collections & Documents"]
+        CACHE["Redis Cache<br/>Session & Cache"]
+    end
+
+    subgraph MessageQueue["Message Queue"]
+        RABBITMQ["RabbitMQ<br/>Event Bus & Messaging"]
+    end
+
+    subgraph ExternalServices["External Services"]
+        GOOGLE["Google OAuth<br/>Authentication"]
+        STRIPE["Stripe API<br/>Payment Processing"]
+        MAPS["Leaflet Maps<br/>Location & Routing"]
+    end
+
+    WEB -->|HTTP/WebSocket| REACT
+    REACT -->|API Calls| NGINX
+    MOBILE -->|API Calls| NGINX
+
+    NGINX -->|Route| AUTH
+    NGINX -->|Route| RESTAURANT
+    NGINX -->|Route| UTILS
+    NGINX -->|Route| RIDER
+    NGINX -->|Route| REALTIME
+    NGINX -->|Route| ADMIN
+
+    AUTH -->|Read/Write| MONGO
+    RESTAURANT -->|Read/Write| MONGO
+    UTILS -->|Read/Write| MONGO
+    RIDER -->|Read/Write| MONGO
+    ADMIN -->|Read/Write| MONGO
+
+    AUTH -->|Cache| CACHE
+    RESTAURANT -->|Cache| CACHE
+    RIDER -->|Cache| CACHE
+
+    AUTH -->|Publish/Subscribe| RABBITMQ
+    RESTAURANT -->|Publish/Subscribe| RABBITMQ
+    UTILS -->|Publish/Subscribe| RABBITMQ
+    RIDER -->|Publish/Subscribe| RABBITMQ
+    REALTIME -->|Publish/Subscribe| RABBITMQ
+
+    AUTH -->|OAuth| GOOGLE
+    RESTAURANT -->|Payment| STRIPE
+    RIDER -->|Mapping| MAPS
+    REACT -->|Auth| GOOGLE
+    REACT -->|Payment| STRIPE
+    REACT -->|Mapping| MAPS
+
+    REALTIME -->|WebSocket| REACT
+
+    style Client fill:#e1f5ff
+    style Frontend fill:#fff3e0
+    style Gateway fill:#f3e5f5
+    style Services fill:#e8f5e9
+    style Database fill:#fce4ec
+    style MessageQueue fill:#fff9c4
+    style ExternalServices fill:#f1f8e9
+```
+
+### Architecture Overview
+
+**Client Layer**: Web browser and optional mobile applications
+
+**Frontend Layer**: React Single Page Application (SPA) built with Vite, featuring TypeScript for type safety and Tailwind CSS for styling. Real-time communication via WebSocket.
+
+**API Gateway**: Nginx acts as the central gateway, routing requests to appropriate microservices and providing load balancing.
+
+**Microservices Layer**: Six independent Node.js microservices handling specific domains:
+
+- Auth Service: User authentication and authorization
+- Restaurant Service: Restaurant and menu management
+- Utils Service: Email, SMS, and other utilities
+- Rider Service: Delivery partner and tracking management
+- Realtime Service: WebSocket server for live updates
+- Admin Service: System analytics and admin operations
+
+**Data Layer**:
+
+- MongoDB for persistent storage
+- Redis for caching and session management
+
+**Message Queue**: RabbitMQ for asynchronous communication between services
+
+**External Integrations**: Third-party services for authentication (Google OAuth), payments (Stripe), and mapping (Leaflet)
+
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
