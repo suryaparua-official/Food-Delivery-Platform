@@ -122,20 +122,20 @@ The platform features real-time order tracking with WebSocket integration, inter
 
 ```mermaid
 graph TB
-    subgraph Client["🖥️ CLIENT LAYER"]
+    subgraph Client["CLIENT LAYER"]
         WEB["Web Browser<br/>React 19 + TypeScript"]
         MOBILE["Mobile App"]
     end
 
-    subgraph Frontend["🎨 FRONTEND LAYER"]
+    subgraph Frontend["FRONTEND LAYER"]
         REACT["React SPA<br/>Vite + Tailwind CSS<br/>Socket.io Client"]
     end
 
-    subgraph Gateway["🚪 API GATEWAY"]
+    subgraph Gateway["API GATEWAY"]
         NGINX["Nginx<br/>Load Balancer & Router"]
     end
 
-    subgraph Services["⚙️ MICROSERVICES"]
+    subgraph Services["MICROSERVICES"]
         AUTH["Auth Service:5000<br/>JWT & OAuth"]
         RESTAURANT["Restaurant:5001<br/>Menu & Orders"]
         UTILS["Utils:5002<br/>Email/SMS"]
@@ -144,13 +144,13 @@ graph TB
         ADMIN["Admin:5006<br/>Analytics"]
     end
 
-    subgraph Infrastructure["📦 INFRASTRUCTURE"]
+    subgraph Infrastructure["INFRASTRUCTURE"]
         MONGO["MongoDB<br/>Primary Database"]
         CACHE["Redis<br/>Cache & Sessions"]
         RABBITMQ["RabbitMQ<br/>Message Bus"]
     end
 
-    subgraph External["🔗 EXTERNAL SERVICES"]
+    subgraph External["EXTERNAL SERVICES"]
         GOOGLE["Google OAuth"]
         STRIPE["Stripe Payment"]
         MAPS["Leaflet Maps"]
@@ -206,29 +206,41 @@ graph TB
 
 ### Architecture Overview
 
-**Client Layer**: Web browser and optional mobile applications
+#### Communication Flow
 
-**Frontend Layer**: React Single Page Application (SPA) built with Vite, featuring TypeScript for type safety and Tailwind CSS for styling. Real-time communication via WebSocket.
+1. **User Client** → Web/Mobile browser sends HTTP/WebSocket requests
+2. **React Frontend** → Processes requests and communicates with backend via Nginx gateway
+3. **Nginx Gateway** → Routes requests to appropriate microservices
+4. **Microservices** → Handle business logic and store data in MongoDB
+5. **Supporting Services** → Redis for caching, RabbitMQ for async messaging
+6. **External APIs** → Google Auth, Stripe Payments, Leaflet Maps
 
-**API Gateway**: Nginx acts as the central gateway, routing requests to appropriate microservices and providing load balancing.
+#### Layer Breakdown
 
-**Microservices Layer**: Six independent Node.js microservices handling specific domains:
+| Layer              | Component                | Purpose                                            |
+| ------------------ | ------------------------ | -------------------------------------------------- |
+| **Client**         | Web Browser, Mobile App  | User interface entry points                        |
+| **Frontend**       | React SPA + Vite         | UI rendering, API communication, WebSocket         |
+| **Gateway**        | Nginx                    | Request routing, load balancing, SSL termination   |
+| **Services**       | 6 Microservices          | Business logic, data processing, domain separation |
+| **Infrastructure** | MongoDB, Redis, RabbitMQ | Data persistence, caching, event messaging         |
+| **External**       | Google, Stripe, Leaflet  | Authentication, payments, mapping                  |
 
-- Auth Service: User authentication and authorization
-- Restaurant Service: Restaurant and menu management
-- Utils Service: Email, SMS, and other utilities
-- Rider Service: Delivery partner and tracking management
-- Realtime Service: WebSocket server for live updates
-- Admin Service: System analytics and admin operations
+#### Service Responsibilities
 
-**Data Layer**:
+- **Auth Service (5000)**: User authentication, JWT tokens, OAuth integration
+- **Restaurant Service (5001)**: Restaurant profiles, menu management, order handling
+- **Utils Service (5002)**: Email notifications, SMS, utility functions
+- **Realtime Service (5004)**: WebSocket server, live order updates, real-time notifications
+- **Rider Service (5005)**: Delivery tracking, rider profiles, route optimization
+- **Admin Service (5006)**: System analytics, user management, reporting
 
-- MongoDB for persistent storage
-- Redis for caching and session management
+#### Data Flow
 
-**Message Queue**: RabbitMQ for asynchronous communication between services
-
-**External Integrations**: Third-party services for authentication (Google OAuth), payments (Stripe), and mapping (Leaflet)
+- All services read/write to MongoDB for persistent storage
+- Redis caches frequently accessed data (auth tokens, restaurant data)
+- RabbitMQ enables asynchronous communication between services
+- WebSocket maintains real-time connection with frontend clients
 
 ## Prerequisites
 
