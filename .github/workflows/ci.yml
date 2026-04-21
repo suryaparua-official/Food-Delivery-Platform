@@ -29,12 +29,12 @@ jobs:
         run: |
           npm ci --prefix frontend
 
-          npm ci --prefix backend/admin-service
-          npm ci --prefix backend/auth-service
-          npm ci --prefix backend/realtime-service
-          npm ci --prefix backend/restaurant-service
-          npm ci --prefix backend/rider-service
-          npm ci --prefix backend/utils-service
+          npm ci --prefix app/services/admin-service
+          npm ci --prefix app/services/auth-service
+          npm ci --prefix app/services/realtime-service
+          npm ci --prefix app/services/restaurant-service
+          npm ci --prefix app/services/rider-service
+          npm ci --prefix app/services/utils-service
 
       # -------------------------
       # - name: Lint
@@ -92,12 +92,12 @@ jobs:
         run: |
           docker build -t $DOCKERHUB_USERNAME/frontend:$IMAGE_TAG ./frontend
 
-          docker build -t $DOCKERHUB_USERNAME/admin-service:$IMAGE_TAG ./backend/admin-service
-          docker build -t $DOCKERHUB_USERNAME/auth-service:$IMAGE_TAG ./backend/auth-service
-          docker build -t $DOCKERHUB_USERNAME/realtime-service:$IMAGE_TAG ./backend/realtime-service
-          docker build -t $DOCKERHUB_USERNAME/restaurant-service:$IMAGE_TAG ./backend/restaurant-service
-          docker build -t $DOCKERHUB_USERNAME/rider-service:$IMAGE_TAG ./backend/rider-service
-          docker build -t $DOCKERHUB_USERNAME/utils-service:$IMAGE_TAG ./backend/utils-service
+          docker build -t $DOCKERHUB_USERNAME/admin-service:$IMAGE_TAG ./app/services/admin-service
+          docker build -t $DOCKERHUB_USERNAME/auth-service:$IMAGE_TAG ./app/services/auth-service
+          docker build -t $DOCKERHUB_USERNAME/realtime-service:$IMAGE_TAG ./app/services/realtime-service
+          docker build -t $DOCKERHUB_USERNAME/restaurant-service:$IMAGE_TAG ./app/services/restaurant-service
+          docker build -t $DOCKERHUB_USERNAME/rider-service:$IMAGE_TAG ./app/services/rider-service
+          docker build -t $DOCKERHUB_USERNAME/utils-service:$IMAGE_TAG ./app/services/utils-service
 
       # -------------------------
       - name: Trivy Scan (All Images)
