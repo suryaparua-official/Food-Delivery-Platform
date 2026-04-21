@@ -1,0 +1,84 @@
+# ==============================
+
+# Terraform
+
+# ==============================
+
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Terraform lock (optional: keep if team use)
+
+# .terraform.lock.hcl
+
+# Sensitive variable files
+
+*.tfvars
+*.tfvars.json
+
+# ==============================
+
+# Kubernetes
+
+# ==============================
+
+# Generated files
+
+*.yaml.tmp
+*.yml.tmp
+
+# Kubeconfig (never commit)
+
+kubeconfig
+*.kubeconfig
+
+# Secrets (VERY IMPORTANT)
+
+secrets.yaml
+secret.yaml
+*.secret.yaml
+
+# ==============================
+
+# ArgoCD
+
+# ==============================
+
+# Local config or temp files
+
+argocd-secret.yaml
+argocd-password.txt
+
+# ==============================
+
+# Logs
+
+# ==============================
+
+*.log
+
+# ==============================
+
+# OS / Editor
+
+# ==============================
+
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ==============================
+
+# Misc
+
+# ==============================
+
+*.bak
+*.tmp

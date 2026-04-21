@@ -41,12 +41,12 @@ jobs:
       #   run: |
       #     npm run lint --prefix frontend
 
-      #     npm run lint --prefix backend/admin-service
-      #     npm run lint --prefix backend/auth-service
-      #     npm run lint --prefix backend/realtime-service
-      #     npm run lint --prefix backend/restaurant-service
-      #     npm run lint --prefix backend/rider-service
-      #     npm run lint --prefix backend/utils-service
+      #     npm run lint --prefix app/services/admin-service
+      #     npm run lint --prefix app/services/auth-service
+      #     npm run lint --prefix app/services/realtime-service
+      #     npm run lint --prefix app/services/restaurant-service
+      #     npm run lint --prefix app/services/rider-service
+      #     npm run lint --prefix app/services/utils-service
 
       # -------------------------
       - name: SonarQube Scan

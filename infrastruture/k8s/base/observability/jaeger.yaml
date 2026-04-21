@@ -1,0 +1,148 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: jaeger
+  namespace: observability
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger
+  namespace: observability
+  labels:
+    app: jaeger
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jaeger
+  template:
+    metadata:
+      labels:
+        app: jaeger
+    spec:
+      serviceAccountName: jaeger
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+      containers:
+        - name: jaeger
+          image: jaegertracing/all-in-one:latest
+          ports:
+            - name: jaeger-agent-zipkin-thrift
+              containerPort: 6831
+              protocol: UDP
+            - name: jaeger-agent-compact
+              containerPort: 6832
+              protocol: UDP
+            - name: jaeger-agent-grpc
+              containerPort: 14250
+              protocol: TCP
+            - name: jaeger-collector-grpc
+              containerPort: 14250
+              protocol: TCP
+            - name: jaeger-collector-http
+              containerPort: 14268
+              protocol: TCP
+            - name: jaeger-query-http
+              containerPort: 16686
+              protocol: TCP
+          env:
+            - name: COLLECTOR_ZIPKIN_HTTP_PORT
+              value: "9411"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 16686
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 16686
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger
+  namespace: observability
+  labels:
+    app: jaeger
+spec:
+  selector:
+    app: jaeger
+  type: LoadBalancer
+  ports:
+    - name: jaeger-agent-zipkin-thrift
+      port: 6831
+      targetPort: 6831
+      protocol: UDP
+    - name: jaeger-agent-compact
+      port: 6832
+      targetPort: 6832
+      protocol: UDP
+    - name: jaeger-collector-grpc
+      port: 14250
+      targetPort: 14250
+      protocol: TCP
+    - name: jaeger-collector-http
+      port: 14268
+      targetPort: 14268
+      protocol: TCP
+    - name: jaeger-query-http
+      port: 16686
+      targetPort: 16686
+      protocol: TCP
+    - name: zipkin
+      port: 9411
+      targetPort: 9411
+      protocol: TCP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-agent
+  namespace: observability
+  labels:
+    app: jaeger
+spec:
+  clusterIP: None
+  selector:
+    app: jaeger
+  ports:
+    - name: jaeger-agent-zipkin-thrift
+      port: 6831
+      targetPort: 6831
+      protocol: UDP
+    - name: jaeger-agent-compact
+      port: 6832
+      targetPort: 6832
+      protocol: UDP
+    - name: jaeger-agent-grpc
+      port: 14250
+      targetPort: 14250
+      protocol: TCP

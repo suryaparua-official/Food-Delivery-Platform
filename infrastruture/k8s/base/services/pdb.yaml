@@ -1,0 +1,106 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: auth-service-pdb
+  namespace: food-delivery
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: auth-service
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: restaurant-service-pdb
+  namespace: food-delivery
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: restaurant-service
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: utils-service-pdb
+  namespace: food-delivery
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: utils-service
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: realtime-service-pdb
+  namespace: food-delivery
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: realtime-service
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: rider-service-pdb
+  namespace: food-delivery
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: rider-service
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: api-gateway-pdb
+  namespace: food-delivery
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: frontend-pdb
+  namespace: food-delivery
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: frontend
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: mongodb-pdb
+  namespace: infrastructure
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: mongodb
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: rabbitmq-pdb
+  namespace: infrastructure
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: rabbitmq

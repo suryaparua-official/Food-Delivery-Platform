@@ -1,0 +1,60 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: food-delivery
+
+bases:
+  - ../../base/namespace
+  - ../../base/security
+  - ../../base/services
+  - ../../base/infrastructure
+  - ../../base/monitoring
+  - ../../base/observability
+
+commonLabels:
+  environment: production
+  team: platform
+
+commonAnnotations:
+  managed-by: argocd
+  deployment-date: "2024"
+
+replicas:
+  - name: auth-service
+    count: 3
+  - name: restaurant-service
+    count: 3
+  - name: utils-service
+    count: 3
+  - name: realtime-service
+    count: 3
+  - name: rider-service
+    count: 3
+  - name: admin-service
+    count: 2
+  - name: frontend
+    count: 3
+  - name: api-gateway
+    count: 3
+
+images:
+  - name: YOUR_ECR_REGISTRY/auth-service
+    newTag: v1.0.0
+  - name: YOUR_ECR_REGISTRY/restaurant-service
+    newTag: v1.0.0
+  - name: YOUR_ECR_REGISTRY/utils-service
+    newTag: v1.0.0
+  - name: YOUR_ECR_REGISTRY/realtime-service
+    newTag: v1.0.0
+  - name: YOUR_ECR_REGISTRY/rider-service
+    newTag: v1.0.0
+  - name: YOUR_ECR_REGISTRY/admin-service
+    newTag: v1.0.0
+  - name: YOUR_ECR_REGISTRY/frontend
+    newTag: v1.0.0
+
+patchesStrategicMerge:
+  - deployment-resources-prod.yaml
+
+resources:
+  - ../../base/infrastructure/ingress.yaml
