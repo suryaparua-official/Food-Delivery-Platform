@@ -1,0 +1,88 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  auth-service:
+    build: ./auth-service
+    env_file:
+      - ./auth-service/.env
+    ports:
+      - "5000:5000"
+    depends_on:
+      - rabbitmq
+    dns:
+      - 8.8.8.8
+    restart: unless-stopped
+
+  restaurant-service:
+    build: ./restaurant-service
+    env_file:
+      - ./restaurant-service/.env
+    ports:
+      - "5001:5001"
+    depends_on:
+      - rabbitmq
+    dns:
+      - 8.8.8.8
+    restart: unless-stopped
+
+  utils-service:
+    build: ./utils-service
+    env_file:
+      - ./utils-service/.env
+    ports:
+      - "5002:5002"
+    depends_on:
+      - rabbitmq
+    restart: unless-stopped
+
+  realtime-service:
+    build: ./realtime-service
+    env_file:
+      - ./realtime-service/.env
+    ports:
+      - "5004:5004"
+    restart: unless-stopped
+
+  rider-service:
+    build: ./rider-service
+    env_file:
+      - ./rider-service/.env
+    ports:
+      - "5005:5005"
+    depends_on:
+      - rabbitmq
+    dns:
+      - 8.8.8.8
+    restart: unless-stopped
+
+  admin-service:
+    build: ./admin-service
+    env_file:
+      - ./admin-service/.env
+    ports:
+      - "5006:5006"
+    dns:
+      - 8.8.8.8
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: api-gateway
+    ports:
+      - "8081:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - auth-service
+      - restaurant-service
+      - rider-service
+      - utils-service
+      - realtime-service
+      - admin-service
+    restart: unless-stopped
