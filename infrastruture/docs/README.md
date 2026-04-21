@@ -2,7 +2,7 @@
 
 Complete production-ready Kubernetes infrastructure for a food delivery platform with microservices, monitoring, observability, and GitOps.
 
-## 📋 Architecture Overview
+## Architecture Overview
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
@@ -38,7 +38,7 @@ Complete production-ready Kubernetes infrastructure for a food delivery platform
 └──────────────────────────────────────────────────────────────────┘
 ```
 
-## 🚀 Quick Start (30 minutes)
+## Quick Start (30 minutes)
 
 ### Prerequisites
 
@@ -76,7 +76,7 @@ kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/st
 kubectl apply -f argocd/applications.yaml
 ```
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 food-delivery-k8s/
@@ -107,7 +107,7 @@ food-delivery-k8s/
 └── README.md                # This file
 ```
 
-## 🔧 Features
+## Features
 
 ### High Availability
 
@@ -150,7 +150,7 @@ food-delivery-k8s/
 - ✅ Database backups
 - ✅ Disaster recovery procedures
 
-## 📊 Component Details
+## Component Details
 
 ### Services & Replicas
 
@@ -183,7 +183,7 @@ food-delivery-k8s/
 | Kibana        | 5601  | LoadBalancer | Log analysis        |
 | Jaeger        | 16686 | LoadBalancer | Trace visualization |
 
-## 🔐 Security Features
+## Security Features
 
 ### Network Policies
 
@@ -212,7 +212,7 @@ food-delivery-k8s/
 - No privilege escalation
 ```
 
-## 📈 Monitoring Access
+## Monitoring Access
 
 ```bash
 # Prometheus
@@ -232,7 +232,7 @@ kubectl port-forward -n observability svc/kibana 5601:5601
 kubectl port-forward -n observability svc/jaeger 16686:16686
 ```
 
-## 🚀 Deployment Environments
+## Deployment Environments
 
 ### Development
 
@@ -255,7 +255,7 @@ kubectl apply -k k8s/overlays/prod
 # Full resources, 3+ replicas, full monitoring
 ```
 
-## 🔄 GitOps Workflow with ArgoCD
+## GitOps Workflow with ArgoCD
 
 ### Install ArgoCD
 
@@ -279,7 +279,7 @@ kubectl port-forward svc/argocd-server -n argocd 8080:443
 # Password: (get from secret)
 ```
 
-## 🛠️ Useful Commands
+## Useful Commands
 
 ```bash
 # Check cluster
@@ -306,7 +306,7 @@ kubectl apply -k k8s/overlays/prod
 kubectl get events -n food-delivery --sort-by='.lastTimestamp'
 ```
 
-## 📋 Production Checklist
+## Production Checklist
 
 - [ ] VPC & Networking configured
 - [ ] EKS cluster deployed with 3+ nodes
@@ -326,7 +326,7 @@ kubectl get events -n food-delivery --sort-by='.lastTimestamp'
 - [ ] Backup procedures tested
 - [ ] Disaster recovery plan documented
 
-## 🔧 Configuration Updates
+## Configuration Updates
 
 ### Update Docker Registry
 
@@ -355,13 +355,13 @@ hosts:
   - yourdomain.com
 ```
 
-## 📚 Documentation
+## Documentation
 
 - **Setup**: See [SETUP_INSTRUCTIONS.md](SETUP_INSTRUCTIONS.md)
 - **Production**: See [PRODUCTION_DEPLOYMENT_GUIDE.md](PRODUCTION_DEPLOYMENT_GUIDE.md)
 - **Terraform**: See [terraform/aws/README.md](terraform/aws/README.md)
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Pods not starting
 
@@ -394,7 +394,7 @@ kubectl top pods -n food-delivery
 - [ELK Stack](https://www.elastic.co/guide/)
 - [Jaeger](https://www.jaegertracing.io/)
 
-## 📞 Support
+## Support
 
 For issues:
 
@@ -403,11 +403,11 @@ For issues:
 3. Check monitoring: Visit Grafana dashboard
 4. Review runbooks in documentation
 
-## 📝 License
+## License
 
 This infrastructure code is provided as-is for the Food Delivery Platform project.
 
-## 👥 Contributing
+## Contributing
 
 To contribute:
 
@@ -419,6 +419,6 @@ To contribute:
 
 ---
 
-**Created**: 2024
-**Maintained by**: Platform Engineering Team
-**Last Updated**: 2024
+**Created**: 2026
+**Maintained by**: Surya Parua
+**Last Updated**: 2026
