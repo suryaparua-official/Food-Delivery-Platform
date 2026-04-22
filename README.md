@@ -1,11 +1,11 @@
-# 🍕 Food Delivery Platform - Complete Production Setup
+# Food Delivery Platform - Complete Production Setup
 
 [![CI/CD Pipeline](https://github.com/yourorg/food-delivery-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/yourorg/food-delivery-platform/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Kubernetes: 1.28+](https://img.shields.io/badge/Kubernetes-1.28%2B-blue)](https://kubernetes.io)
 [![Terraform: 1.5+](https://img.shields.io/badge/Terraform-1.5%2B-purple)](https://www.terraform.io)
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Overview](#overview)
 - [Architecture](#architecture)
@@ -18,7 +18,7 @@
 - [Contributing](#contributing)
 - [Support](#support)
 
-## 🚀 Overview
+## Overview
 
 The **Food Delivery Platform** is a production-grade microservices application built with modern cloud-native technologies. It features:
 
@@ -33,7 +33,7 @@ The **Food Delivery Platform** is a production-grade microservices application b
 ✅ **Security** - TLS encryption, mTLS, RBAC, network policies
 ✅ **Multi-Environment** - Development, Staging, Production
 
-## 🏗️ Architecture
+## Architecture
 
 ### System Components
 
@@ -127,7 +127,7 @@ The **Food Delivery Platform** is a production-grade microservices application b
 | Rider Service      | 3104 | Rider Management               | Node.js + Express         |
 | Realtime Service   | 3105 | WebSocket Communications       | Node.js + Socket.io       |
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -220,7 +220,7 @@ curl https://$ALB_DNS/api/v1/restaurants
 # Jaeger: kubectl port-forward -n observability svc/jaeger 16686:16686
 ```
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 food-delivery-platform/
@@ -298,9 +298,9 @@ food-delivery-platform/
 └── docker-compose.yml
 ```
 
-## ✨ Features
+## Features
 
-### 🔐 Security
+### Security
 
 - TLS/SSL encryption in transit
 - mTLS between services (Istio)
@@ -310,7 +310,7 @@ food-delivery-platform/
 - Container image scanning with Trivy
 - SAST with SonarQube
 
-### 📊 Observability
+### Observability
 
 - Distributed tracing with Jaeger
 - Metrics collection with Prometheus
@@ -319,7 +319,7 @@ food-delivery-platform/
 - Application instrumentation with OpenTelemetry
 - Health checks and readiness probes
 
-### 🚀 Deployment & Operations
+### Deployment & Operations
 
 - GitOps-ready with ArgoCD (optional)
 - Blue-green deployments supported
@@ -329,7 +329,7 @@ food-delivery-platform/
 - Horizontal Pod Autoscaling (HPA)
 - Backup and disaster recovery
 
-### 💰 Cost Optimization
+### Cost Optimization
 
 - Spot instances for worker nodes
 - Reserved instances for master nodes
@@ -337,7 +337,7 @@ food-delivery-platform/
 - Resource quotas per namespace
 - Network cost optimization
 
-## 📚 Documentation
+## Documentation
 
 ### Core Documentation
 
@@ -360,7 +360,7 @@ food-delivery-platform/
 - [Ansible Documentation](https://docs.ansible.com/)
 - [Docker Hub](https://hub.docker.com/)
 
-## 🔄 CI/CD Pipeline
+## CI/CD Pipeline
 
 ### GitHub Actions Workflow
 
@@ -385,7 +385,7 @@ SONAR_TOKEN             - SonarQube token
 SLACK_WEBHOOK_URL       - Slack notifications
 ```
 
-## 🛠️ Development Workflow
+## Development Workflow
 
 ### Local Development
 
@@ -424,7 +424,7 @@ docker build -t username/frontend:latest ./app/frontend
 docker push username/frontend:latest
 ```
 
-## 📈 Monitoring & Alerting
+## Monitoring & Alerting
 
 ### Access Monitoring Dashboards
 
@@ -453,7 +453,7 @@ Configure alerting rules in:
 - `infrastruture/k8s/monitoring/prometheus-rules.yaml`
 - Slack, PagerDuty, or email notifications
 
-## 🆘 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -484,7 +484,7 @@ terraform state list
 3. Check status in monitoring dashboards
 4. Open an issue on GitHub
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -494,22 +494,22 @@ terraform state list
 6. Push to the branch (`git push origin feature/amazing-feature`)
 7. Open a Pull Request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see [LICENSE.md](LICENSE.md) for details.
 
-## 🔐 Security
+## Security
 
 Please see [SECURITY.md](SECURITY.md) for security reporting procedures.
 
-## 📞 Support
+## Support
 
 - **Documentation**: See `infrastruture/docs/` for detailed guides
 - **Issues**: Open an issue on GitHub
 - **Email**: support@example.com
 - **Slack**: #food-delivery-platform
 
-## 🎯 Roadmap
+## Roadmap
 
 - [ ] ArgoCD integration
 - [ ] GitOps workflows
@@ -520,20 +520,16 @@ Please see [SECURITY.md](SECURITY.md) for security reporting procedures.
 - [ ] Mobile app backend
 - [ ] Payment gateway integration
 
-## 📊 Status
+## Status
 
 - ✅ Infrastructure: Production Ready
 - ✅ CI/CD: Production Ready
 - ✅ Kubernetes: Production Ready
 - ✅ Service Mesh: Production Ready
 - ✅ Observability: Production Ready
-- 🚧 Application Services: In Development
-- 🚧 Frontend: In Development
+- Application Services: In Development
+- Frontend: In Development
 
 ---
 
-**Last Updated**: 2024-01-01
-**Maintained by**: Infrastructure Team
-**Version**: 1.0.0
-
-For the latest updates, check the [GitHub repository](https://github.com/yourorg/food-delivery-platform).
+**Maintained by**: Surya Parua
