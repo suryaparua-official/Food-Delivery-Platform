@@ -1,0 +1,73 @@
+---
+# RequestAuthentication and AuthorizationPolicy for API Gateway
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: api-gateway-authz
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: api-gateway
+  rules:
+    - from:
+        - source:
+            principals: ["cluster.local/ns/default/api-gateway"]
+      to:
+        - operation:
+            methods: ["GET"]
+            paths: ["/health", "/metrics"]
+    - from:
+        - source:
+            principals: ["cluster.local/ns/default/api-gateway"]
+      to:
+        - operation:
+            methods: ["GET", "POST", "PUT", "DELETE"]
+            paths: ["/api/v1/*"]
+---
+# Rate limiting policy
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: rate-limited-service
+  namespace: default
+spec:
+  hosts:
+    - restaurant-service
+  http:
+    - match:
+        - sourceLabels:
+            app: api-gateway
+      route:
+        - destination:
+            host: restaurant-service
+            port:
+              number: 3000
+          weight: 100
+      timeout: 10s
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+---
+# Circuit breaker for fault tolerance
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: fault-tolerance
+  namespace: default
+spec:
+  host: restaurant-service
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+      http:
+        http1MaxPendingRequests: 100
+        http2MaxRequests: 1000
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minRequestVolume: 5
+      splitExternalLocalOriginErrors: true

@@ -1,0 +1,44 @@
+---
+# Default namespace Istio configuration
+apiVersion: networking.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: default
+spec:
+  mtls:
+    mode: STRICT
+---
+apiVersion: networking.istio.io/v1beta1
+kind: RequestAuthentication
+metadata:
+  name: jwt-auth
+  namespace: default
+spec:
+  jwtRules:
+    - issuer: "https://accounts.google.com"
+      jwksUri: "https://www.googleapis.com/oauth2/v3/certs"
+      audiences: "food-delivery"
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: default-deny
+  namespace: default
+spec:
+  rules: []
+---
+# Service mesh telemetry
+apiVersion: telemetry.istio.io/v1alpha1
+kind: Telemetry
+metadata:
+  name: custom-telemetry
+  namespace: istio-system
+spec:
+  metrics:
+    - dimensions:
+        - request_path
+        - response_code
+  tracing:
+    - randomSamplingPercentage: 10.0
+      useRequestIdForTraceSampling: true

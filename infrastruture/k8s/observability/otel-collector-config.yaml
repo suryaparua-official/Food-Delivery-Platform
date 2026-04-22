@@ -1,0 +1,102 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  namespace: observability
+data:
+  collector-config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+
+      prometheus:
+        config:
+          scrape_configs:
+            - job_name: 'food-delivery-services'
+              kubernetes_sd_configs:
+                - role: pod
+              relabel_configs:
+                - source_labels: [__meta_kubernetes_pod_label_monitoring]
+                  action: keep
+                  regex: enabled
+                - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_port]
+                  action: keep
+                  regex: (.+)
+
+    processors:
+      batch:
+        send_batch_size: 1024
+        timeout: 10s
+
+      memory_limiter:
+        check_interval: 1s
+        limit_mib: 2048
+        spike_limit_mib: 512
+
+      resource:
+        attributes:
+          - key: service.namespace
+            value: food-delivery
+            action: insert
+          - key: environment
+            value: ${ENVIRONMENT}
+            action: insert
+          - key: deployment.environment
+            value: ${ENVIRONMENT}
+            action: insert
+
+      attributes:
+        actions:
+          - key: http.status_code
+            value: 200
+            action: upsert
+
+      span:
+        name:
+          to_attributes:
+            rules:
+              - ^/health.*
+              - ^/metrics.*
+
+    exporters:
+      jaeger:
+        endpoint: jaeger-collector.observability.svc.cluster.local:14250
+
+      prometheus:
+        endpoint: 0.0.0.0:8889
+
+      logging:
+        loglevel: info
+
+      otlp:
+        client:
+          endpoint: localhost:4317
+
+    extensions:
+      health_check:
+        endpoint: :13133
+      pprof:
+        endpoint: :1777
+      zpages:
+        endpoint: :55679
+
+    service:
+      extensions: [health_check, pprof, zpages]
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter, resource, batch]
+          exporters: [jaeger, logging]
+        metrics:
+          receivers: [otlp, prometheus]
+          processors: [memory_limiter, resource, batch]
+          exporters: [prometheus, logging]
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, resource, batch]
+          exporters: [logging]

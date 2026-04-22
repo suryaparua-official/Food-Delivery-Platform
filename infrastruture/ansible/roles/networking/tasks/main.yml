@@ -1,0 +1,16 @@
+---
+- name: Install Flannel CNI
+  shell: |
+    kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  when: network_plugin == "flannel" and inventory_hostname in groups['masters']
+  run_once: true
+
+- name: Wait for Flannel deployment
+  shell: |
+    kubectl wait --for=condition=ready pod -l app=flannel -n kube-flannel --timeout=600s
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  when: network_plugin == "flannel" and inventory_hostname in groups['masters']
+  run_once: true

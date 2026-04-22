@@ -1,0 +1,50 @@
+---
+- name: Add Kubernetes repository GPG key
+  apt_key:
+    url: https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_version.split('.')[0] }}.{{ kubernetes_version.split('.')[1] }}/deb/Release.key
+    state: present
+
+- name: Add Kubernetes repository
+  apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_version.split('.')[0] }}.{{ kubernetes_version.split('.')[1] }}/deb/ /"
+    state: present
+    filename: kubernetes
+
+- name: Install kubelet, kubeadm, and kubectl
+  apt:
+    name:
+      - kubelet={{ kubernetes_version }}*
+      - kubeadm={{ kubernetes_version }}*
+      - kubectl={{ kubernetes_version }}*
+    state: present
+    update_cache: yes
+
+- name: Hold kubernetes packages
+  dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  with_items:
+    - kubelet
+    - kubeadm
+    - kubectl
+
+- name: Enable and start kubelet
+  systemd:
+    name: kubelet
+    state: started
+    enabled: yes
+    daemon_reload: yes
+
+- name: Create kubelet directory
+  file:
+    path: /etc/kubernetes
+    state: directory
+    mode: "0755"
+
+- name: Configure kubelet systemd drop-in
+  copy:
+    content: |
+      [Service]
+      Environment="KUBELET_EXTRA_ARGS=--max-pods=110"
+    dest: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+  notify: restart kubelet

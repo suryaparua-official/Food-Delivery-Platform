@@ -1,0 +1,96 @@
+---
+- name: Create observability namespace
+  kubernetes.core.k8s:
+    name: observability
+    api_version: v1
+    kind: Namespace
+    state: present
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+
+- name: Add OpenTelemetry Helm repository
+  shell: |
+    helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
+    helm repo update
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+
+- name: Create OpenTelemetry Collector ConfigMap
+  copy:
+    content: |
+      receivers:
+        otlp:
+          protocols:
+            grpc:
+              endpoint: 0.0.0.0:4317
+            http:
+              endpoint: 0.0.0.0:4318
+        prometheus:
+          config:
+            scrape_configs:
+              - job_name: kubernetes-apiservers
+                kubernetes_sd_configs:
+                  - role: endpoints
+                scheme: https
+                tls_config:
+                  ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+                bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+                relabel_configs:
+                  - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+                    action: keep
+                    regex: default;kubernetes;https
+      processors:
+        batch:
+          send_batch_size: 1024
+          timeout: 10s
+        memory_limiter:
+          check_interval: 1s
+          limit_mib: 2048
+          spike_limit_mib: 512
+        resource:
+          attributes:
+            - key: service.namespace
+              value: food-delivery
+              action: insert
+            - key: environment
+              value: production
+              action: insert
+      exporters:
+        prometheus:
+          endpoint: "0.0.0.0:8889"
+        logging:
+          loglevel: info
+        jaeger:
+          endpoint: jaeger-collector:14250
+      service:
+        pipelines:
+          traces:
+            receivers: [otlp]
+            processors: [memory_limiter, batch, resource]
+            exporters: [jaeger, logging]
+          metrics:
+            receivers: [otlp, prometheus]
+            processors: [memory_limiter, batch, resource]
+            exporters: [prometheus, logging]
+    dest: /tmp/otel-collector-config.yaml
+
+- name: Install OpenTelemetry Collector
+  shell: |
+    helm install otel-collector open-telemetry/opentelemetry-collector \
+      -n observability \
+      --create-namespace \
+      -f /tmp/otel-collector-config.yaml
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+
+- name: Install Jaeger for tracing
+  shell: |
+    helm repo add jaegertracing https://jaegertracing.github.io/helm-charts
+    helm repo update
+    helm install jaeger jaegertracing/jaeger \
+      -n observability \
+      --create-namespace \
+      --set provisionDataStore.cassandra=false \
+      --set provisionDataStore.elasticsearch=false
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf

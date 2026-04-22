@@ -1,0 +1,46 @@
+---
+- name: Initialize Kubernetes cluster on master node
+  shell: |
+    kubeadm init \
+      --apiserver-advertise-address={{ ansible_default_ipv4.address }} \
+      --pod-network-cidr={{ pod_network_cidr }} \
+      --service-cidr={{ service_network_cidr }} \
+      --kubernetes-version={{ kubernetes_version }} \
+      --ignore-preflight-errors=Swap
+  when: inventory_hostname == groups['masters'][0]
+  register: kubeadm_init
+
+- name: Create kubectl config directory
+  file:
+    path: /root/.kube
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+  when: inventory_hostname == groups['masters'][0]
+
+- name: Copy kubeconfig
+  shell: |
+    cp /etc/kubernetes/admin.conf /root/.kube/config
+    chmod 600 /root/.kube/config
+  when: inventory_hostname == groups['masters'][0]
+
+- name: Get join command
+  shell: kubeadm token create --print-join-command
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  register: join_command
+  when: inventory_hostname == groups['masters'][0]
+
+- name: Set join command fact
+  set_fact:
+    kubernetes_join_command: "{{ join_command.stdout }}"
+  when: inventory_hostname == groups['masters'][0]
+
+- name: Save join command
+  copy:
+    content: "{{ kubernetes_join_command }}"
+    dest: /tmp/join_command.sh
+    mode: "0755"
+  when: inventory_hostname == groups['masters'][0]
+  delegate_to: localhost

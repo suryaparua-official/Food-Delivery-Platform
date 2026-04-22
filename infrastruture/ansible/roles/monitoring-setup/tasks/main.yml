@@ -1,0 +1,74 @@
+---
+- name: Create monitoring namespace
+  kubernetes.core.k8s:
+    name: monitoring
+    api_version: v1
+    kind: Namespace
+    state: present
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+
+- name: Add Prometheus Helm repository
+  shell: |
+    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+    helm repo update
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+
+- name: Install Prometheus Stack
+  shell: |
+    helm install prometheus prometheus-community/kube-prometheus-stack \
+      -n monitoring \
+      --create-namespace \
+      --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false \
+      --set grafana.adminPassword=admin
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+
+- name: Add Grafana Helm repository
+  shell: |
+    helm repo add grafana https://grafana.github.io/helm-charts
+    helm repo update
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+
+- name: Add Loki Helm repository
+  shell: |
+    helm repo add grafana https://grafana.github.io/helm-charts
+    helm repo update
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+
+- name: Install Loki for log aggregation
+  shell: |
+    helm install loki grafana/loki-stack \
+      -n monitoring \
+      --create-namespace \
+      --set loki.enabled=true \
+      --set promtail.enabled=true \
+      --set grafana.enabled=false
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+
+- name: Create ServiceMonitor for custom metrics
+  copy:
+    content: |
+      apiVersion: monitoring.coreos.com/v1
+      kind: ServiceMonitor
+      metadata:
+        name: food-delivery-services
+        namespace: monitoring
+      spec:
+        selector:
+          matchLabels:
+            monitoring: enabled
+        endpoints:
+          - port: metrics
+            interval: 30s
+            path: /metrics
+    dest: /tmp/servicemonitor.yaml
+
+- name: Apply ServiceMonitor
+  shell: kubectl apply -f /tmp/servicemonitor.yaml
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf

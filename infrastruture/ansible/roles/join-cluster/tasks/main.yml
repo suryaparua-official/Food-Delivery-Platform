@@ -1,0 +1,22 @@
+---
+- name: Join workers to cluster
+  shell: |
+    kubeadm join {{ hostvars[groups['masters'][0]]['ansible_default_ipv4']['address'] }}:6443 \
+      --token $(kubeadm token list -o jsonpath='{.token}' --kubeconfig /etc/kubernetes/admin.conf | head -1) \
+      --discovery-token-ca-cert-hash sha256:$(openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt --kubeconfig /etc/kubernetes/admin.conf | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //')
+  when: inventory_hostname in groups['workers']
+  ignore_errors: yes
+
+- name: Create kubectl config directory for workers
+  file:
+    path: /root/.kube
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+  when: inventory_hostname in groups['workers']
+
+- name: Wait for join to complete
+  pause:
+    seconds: 10
+  when: inventory_hostname in groups['workers']

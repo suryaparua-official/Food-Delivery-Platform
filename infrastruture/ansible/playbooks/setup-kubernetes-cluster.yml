@@ -1,0 +1,32 @@
+---
+- name: Setup Kubernetes Cluster
+  hosts: kubernetes_cluster
+  become: yes
+  serial: 1
+  roles:
+    - role: system-setup
+      tags: [system]
+    - role: container-runtime
+      tags: [runtime]
+    - role: kubernetes-setup
+      tags: [kubernetes]
+    - role: networking
+      tags: [networking]
+    - role: bootstrap-cluster
+      tags: [bootstrap]
+      run_once: true
+      delegate_to: "{{ groups['masters'][0] }}"
+    - role: join-cluster
+      tags: [join]
+    - role: istio-setup
+      tags: [istio]
+      run_once: true
+      delegate_to: "{{ groups['masters'][0] }}"
+    - role: opentelemetry-setup
+      tags: [opentelemetry]
+      run_once: true
+      delegate_to: "{{ groups['masters'][0] }}"
+    - role: monitoring-setup
+      tags: [monitoring]
+      run_once: true
+      delegate_to: "{{ groups['masters'][0] }}"

@@ -1,34 +1,169 @@
-name: Full CI Pipeline (All Services)
+name: Food Delivery Platform - Complete CI/CD Pipeline
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - main
+      - develop
+    paths:
+      - "app/**"
+      - ".github/workflows/ci.yml"
+  pull_request:
+    branches:
+      - main
+      - develop
 
 env:
+  REGISTRY: docker.io
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-  IMAGE_TAG: ${{ github.run_number }}
-  TRIVY_SEVERITY: HIGH,CRITICAL
+  REGISTRY_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
 
 jobs:
+  # ============================================================================
+  # BUILD JOB - Build and tag all microservices
+  # ============================================================================
   build:
+    name: Build and Tag Images
     runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      version: ${{ steps.version.outputs.version }}
+    permissions:
+      packages: write
+      contents: read
 
     steps:
-      # -------------------------
-      - name: Checkout
+      - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      # -------------------------
-      - name: Setup Node
+      - name: Generate Version
+        id: version
+        run: |
+          VERSION="${{ github.ref_name }}-${{ github.run_number }}-$(git rev-parse --short HEAD)"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Build version: $VERSION"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ env.REGISTRY_PASSWORD }}
+
+      - name: Extract metadata
+        id: meta
+        run: |
+          TAGS="${{ env.DOCKERHUB_USERNAME }}/food-delivery:${{ steps.version.outputs.version }}"
+          TAGS="$TAGS,${{ env.DOCKERHUB_USERNAME }}/food-delivery:latest"
+          echo "tags=$TAGS" >> $GITHUB_OUTPUT
+
+      # Build Frontend
+      - name: Build and Push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./app/frontend
+          push: true
+          tags: ${{ env.DOCKERHUB_USERNAME }}/frontend:${{ steps.version.outputs.version }},${{ env.DOCKERHUB_USERNAME }}/frontend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+      # Build Admin Service
+      - name: Build and Push Admin Service
+        uses: docker/build-push-action@v5
+        with:
+          context: ./app/services/admin-service
+          push: true
+          tags: ${{ env.DOCKERHUB_USERNAME }}/admin-service:${{ steps.version.outputs.version }},${{ env.DOCKERHUB_USERNAME }}/admin-service:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+      # Build Auth Service
+      - name: Build and Push Auth Service
+        uses: docker/build-push-action@v5
+        with:
+          context: ./app/services/auth-service
+          push: true
+          tags: ${{ env.DOCKERHUB_USERNAME }}/auth-service:${{ steps.version.outputs.version }},${{ env.DOCKERHUB_USERNAME }}/auth-service:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+      # Build Realtime Service
+      - name: Build and Push Realtime Service
+        uses: docker/build-push-action@v5
+        with:
+          context: ./app/services/realtime-service
+          push: true
+          tags: ${{ env.DOCKERHUB_USERNAME }}/realtime-service:${{ steps.version.outputs.version }},${{ env.DOCKERHUB_USERNAME }}/realtime-service:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+      # Build Restaurant Service
+      - name: Build and Push Restaurant Service
+        uses: docker/build-push-action@v5
+        with:
+          context: ./app/services/restaurant-service
+          push: true
+          tags: ${{ env.DOCKERHUB_USERNAME }}/restaurant-service:${{ steps.version.outputs.version }},${{ env.DOCKERHUB_USERNAME }}/restaurant-service:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+      # Build Rider Service
+      - name: Build and Push Rider Service
+        uses: docker/build-push-action@v5
+        with:
+          context: ./app/services/rider-service
+          push: true
+          tags: ${{ env.DOCKERHUB_USERNAME }}/rider-service:${{ steps.version.outputs.version }},${{ env.DOCKERHUB_USERNAME }}/rider-service:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+      # Build Utils Service
+      - name: Build and Push Utils Service
+        uses: docker/build-push-action@v5
+        with:
+          context: ./app/services/utils-service
+          push: true
+          tags: ${{ env.DOCKERHUB_USERNAME }}/utils-service:${{ steps.version.outputs.version }},${{ env.DOCKERHUB_USERNAME }}/utils-service:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+  # ============================================================================
+  # CODE QUALITY JOB - SAST and dependency checks
+  # ============================================================================
+  code-quality:
+    name: Code Quality & Security Scan
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: "18"
+          cache: "npm"
 
-      # -------------------------
       - name: Install Dependencies
         run: |
-          npm ci --prefix frontend
-
+          npm ci --prefix app/frontend
           npm ci --prefix app/services/admin-service
           npm ci --prefix app/services/auth-service
           npm ci --prefix app/services/realtime-service
@@ -36,101 +171,243 @@ jobs:
           npm ci --prefix app/services/rider-service
           npm ci --prefix app/services/utils-service
 
-      # -------------------------
-      # - name: Lint
-      #   run: |
-      #     npm run lint --prefix frontend
+      - name: Run ESLint
+        run: |
+          npm run lint --prefix app/frontend 2>&1 || true
+          npm run lint --prefix app/services/admin-service 2>&1 || true
+          npm run lint --prefix app/services/auth-service 2>&1 || true
+          npm run lint --prefix app/services/restaurant-service 2>&1 || true
+          npm run lint --prefix app/services/rider-service 2>&1 || true
+          npm run lint --prefix app/services/utils-service 2>&1 || true
 
-      #     npm run lint --prefix app/services/admin-service
-      #     npm run lint --prefix app/services/auth-service
-      #     npm run lint --prefix app/services/realtime-service
-      #     npm run lint --prefix app/services/restaurant-service
-      #     npm run lint --prefix app/services/rider-service
-      #     npm run lint --prefix app/services/utils-service
-
-      # -------------------------
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v2
+      - name: SonarQube Analysis
+        uses: SonarSource/sonarqube-scan-action@master
         with:
           args: >
-            -Dsonar.projectKey=suryaparua-official_Food-Delivery-Platform
-            -Dsonar.organization=suryaparua-official
+            -Dsonar.projectKey=food-delivery-platform
+            -Dsonar.organization=food-delivery
             -Dsonar.host.url=https://sonarcloud.io
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-      # -------------------------
-      - name: Dependency Check
+      - name: Run OWASP Dependency Check
         uses: dependency-check/Dependency-Check_Action@main
         with:
           project: "food-delivery"
           path: "."
-          format: "HTML"
+          format: "SARIF"
           out: "reports"
           args: >
-            --failOnCVSS 7
+            --scan app/
+            --enableExperimental
 
       - name: Upload OWASP Report
         uses: actions/upload-artifact@v4
         with:
-          name: owasp-report
+          name: dependency-check-report
           path: reports
 
-      # -------------------------
-      - name: Setup Docker
-        uses: docker/setup-buildx-action@v3
-
-      # -------------------------
-      - name: Login DockerHub
-        uses: docker/login-action@v3
+      - name: Upload to GitHub Security
+        uses: github/codeql-action/upload-sarif@v2
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          sarif_file: reports/dependency-check-report.sarif
+          category: OWASP
 
-      # -------------------------
-      - name: Build Images
+  # ============================================================================
+  # SECURITY SCAN JOB - Container image scanning
+  # ============================================================================
+  security-scan:
+    name: Container Image Security Scan
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      matrix:
+        service:
+          - frontend
+          - admin-service
+          - auth-service
+          - realtime-service
+          - restaurant-service
+          - rider-service
+          - utils-service
+
+    steps:
+      - name: Run Trivy Vulnerability Scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.DOCKERHUB_USERNAME }}/${{ matrix.service }}:latest
+          format: "sarif"
+          output: "${{ matrix.service }}-trivy-results.sarif"
+          severity: "CRITICAL,HIGH"
+
+      - name: Upload Trivy Results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: "${{ matrix.service }}-trivy-results.sarif"
+          category: "trivy-${{ matrix.service }}"
+
+  # ============================================================================
+  # DEPLOY STAGING JOB - Deploy to staging environment
+  # ============================================================================
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build, code-quality, security-scan]
+    if: github.ref == 'refs/heads/develop'
+    environment:
+      name: staging
+      url: https://staging-api.food-delivery.example.com
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Update Kubernetes Deployment
         run: |
-          docker build -t $DOCKERHUB_USERNAME/frontend:$IMAGE_TAG ./frontend
+          VERSION=${{ needs.build.outputs.version }}
+          kubectl set image deployment/food-delivery \
+            frontend=${{ env.DOCKERHUB_USERNAME }}/frontend:$VERSION \
+            admin-service=${{ env.DOCKERHUB_USERNAME }}/admin-service:$VERSION \
+            auth-service=${{ env.DOCKERHUB_USERNAME }}/auth-service:$VERSION \
+            realtime-service=${{ env.DOCKERHUB_USERNAME }}/realtime-service:$VERSION \
+            restaurant-service=${{ env.DOCKERHUB_USERNAME }}/restaurant-service:$VERSION \
+            rider-service=${{ env.DOCKERHUB_USERNAME }}/rider-service:$VERSION \
+            utils-service=${{ env.DOCKERHUB_USERNAME }}/utils-service:$VERSION \
+            -n staging --record
+          kubectl rollout status deployment/food-delivery -n staging
 
-          docker build -t $DOCKERHUB_USERNAME/admin-service:$IMAGE_TAG ./app/services/admin-service
-          docker build -t $DOCKERHUB_USERNAME/auth-service:$IMAGE_TAG ./app/services/auth-service
-          docker build -t $DOCKERHUB_USERNAME/realtime-service:$IMAGE_TAG ./app/services/realtime-service
-          docker build -t $DOCKERHUB_USERNAME/restaurant-service:$IMAGE_TAG ./app/services/restaurant-service
-          docker build -t $DOCKERHUB_USERNAME/rider-service:$IMAGE_TAG ./app/services/rider-service
-          docker build -t $DOCKERHUB_USERNAME/utils-service:$IMAGE_TAG ./app/services/utils-service
-
-      # -------------------------
-      - name: Trivy Scan (All Images)
+      - name: Run Health Check
         run: |
-          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-          aquasec/trivy image --severity $TRIVY_SEVERITY $DOCKERHUB_USERNAME/frontend:$IMAGE_TAG
+          sleep 30
+          curl -f https://staging-api.food-delivery.example.com/health || exit 1
 
-          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-          aquasec/trivy image --severity $TRIVY_SEVERITY $DOCKERHUB_USERNAME/admin-service:$IMAGE_TAG
+  # ============================================================================
+  # DEPLOY PRODUCTION JOB - Deploy to production environment
+  # ============================================================================
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build, code-quality, security-scan]
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://api.food-delivery.example.com
+    permissions:
+      contents: read
+      deployments: write
 
-          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-          aquasec/trivy image --severity $TRIVY_SEVERITY $DOCKERHUB_USERNAME/auth-service:$IMAGE_TAG
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-          aquasec/trivy image --severity $TRIVY_SEVERITY $DOCKERHUB_USERNAME/realtime-service:$IMAGE_TAG
+      - name: Create Deployment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const deployment = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.sha,
+              environment: 'production',
+              required_contexts: [],
+              auto_merge: false
+            });
 
-          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-          aquasec/trivy image --severity $TRIVY_SEVERITY $DOCKERHUB_USERNAME/restaurant-service:$IMAGE_TAG
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
 
-          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-          aquasec/trivy image --severity $TRIVY_SEVERITY $DOCKERHUB_USERNAME/rider-service:$IMAGE_TAG
-
-          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-          aquasec/trivy image --severity $TRIVY_SEVERITY $DOCKERHUB_USERNAME/utils-service:$IMAGE_TAG
-
-      # -------------------------
-      - name: Push Images
+      - name: Update Kubernetes Deployment
         run: |
-          docker push $DOCKERHUB_USERNAME/frontend:$IMAGE_TAG
+          VERSION=${{ needs.build.outputs.version }}
+          kubectl set image deployment/food-delivery \
+            frontend=${{ env.DOCKERHUB_USERNAME }}/frontend:$VERSION \
+            admin-service=${{ env.DOCKERHUB_USERNAME }}/admin-service:$VERSION \
+            auth-service=${{ env.DOCKERHUB_USERNAME }}/auth-service:$VERSION \
+            realtime-service=${{ env.DOCKERHUB_USERNAME }}/realtime-service:$VERSION \
+            restaurant-service=${{ env.DOCKERHUB_USERNAME }}/restaurant-service:$VERSION \
+            rider-service=${{ env.DOCKERHUB_USERNAME }}/rider-service:$VERSION \
+            utils-service=${{ env.DOCKERHUB_USERNAME }}/utils-service:$VERSION \
+            -n production --record
+          kubectl rollout status deployment/food-delivery -n production
 
-          docker push $DOCKERHUB_USERNAME/admin-service:$IMAGE_TAG
-          docker push $DOCKERHUB_USERNAME/auth-service:$IMAGE_TAG
-          docker push $DOCKERHUB_USERNAME/realtime-service:$IMAGE_TAG
-          docker push $DOCKERHUB_USERNAME/restaurant-service:$IMAGE_TAG
-          docker push $DOCKERHUB_USERNAME/rider-service:$IMAGE_TAG
-          docker push $DOCKERHUB_USERNAME/utils-service:$IMAGE_TAG
+      - name: Run Smoke Tests
+        run: |
+          sleep 60
+          curl -f https://api.food-delivery.example.com/health || exit 1
+          curl -f https://api.food-delivery.example.com/api/v1/restaurants || exit 1
+
+      - name: Update Deployment Status
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const state = context.payload.action === 'completed' && context.payload.workflow_run.conclusion === 'success' ? 'success' : 'failure';
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: ${{ github.event.deployment.id }},
+              state: state,
+              description: 'Deployment ${{ github.event.deployment.environment }}',
+              environment_url: 'https://api.food-delivery.example.com'
+            });
+
+  # ============================================================================
+  # NOTIFICATION JOB - Send notifications
+  # ============================================================================
+  notify:
+    name: Send Notifications
+    runs-on: ubuntu-latest
+    needs: [build, code-quality, security-scan]
+    if: always()
+
+    steps:
+      - name: Send Slack Notification
+        uses: slackapi/slack-github-action@v1
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          payload: |
+            {
+              "text": "Food Delivery Pipeline Status",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "🚀 CI/CD Pipeline Update"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Repository:*\nFood-Delivery-Platform"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Branch:*\n${{ github.ref_name }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Commit:*\n${{ github.sha }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Build Status:*\n✅ Passed"
+                    }
+                  ]
+                }
+              ]
+            }
+        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}

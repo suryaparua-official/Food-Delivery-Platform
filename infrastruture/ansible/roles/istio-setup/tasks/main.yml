@@ -1,0 +1,66 @@
+---
+- name: Download Istio
+  shell: |
+    curl -L https://istio.io/downloadIstio | ISTIO_VERSION={{ istio_version }} sh -
+    cd istio-{{ istio_version }}
+    export PATH=$PWD/bin:$PATH
+    echo "export PATH=$PATH" >> ~/.bashrc
+  args:
+    creates: "/root/istio-{{ istio_version }}/bin/istio"
+
+- name: Create istio-system namespace
+  kubernetes.core.k8s:
+    name: istio-system
+    api_version: v1
+    kind: Namespace
+    state: present
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+
+- name: Install Istio using Helm
+  shell: |
+    helm repo add istio https://istio-release.storage.googleapis.com/charts
+    helm repo update
+    helm install istio-base istio/base -n istio-system --create-namespace
+    helm install istiod istio/istiod -n istio-system --wait
+    helm install istio-ingress istio/gateway -n istio-system --wait
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+
+- name: Enable sidecar injection
+  shell: |
+    kubectl label namespace default istio-injection=enabled
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+
+- name: Create default traffic policy
+  copy:
+    content: |
+      apiVersion: networking.istio.io/v1beta1
+      kind: DestinationRule
+      metadata:
+        name: default
+        namespace: default
+      spec:
+        host: "*.local"
+        trafficPolicy:
+          connectionPool:
+            tcp:
+              maxConnections: 100
+            http:
+              http1MaxPendingRequests: 100
+              http2MaxRequests: 1000
+              maxRequestsPerConnection: 2
+          loadBalancer:
+            simple: ROUND_ROBIN
+          outlierDetection:
+            consecutive5xxErrors: 5
+            interval: 30s
+            baseEjectionTime: 30s
+    dest: /tmp/default-traffic-policy.yaml
+  register: traffic_policy
+
+- name: Apply traffic policy
+  shell: kubectl apply -f /tmp/default-traffic-policy.yaml
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
