@@ -1,4 +1,4 @@
-name: Food Delivery Platform - Complete CI/CD Pipeline
+name: Food Delivery Platform - Secure CI/CD Pipeline
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
       - develop
     paths:
       - "app/**"
-      - ".github/workflows/ci.yml"
+      - ".github/workflows/**"
   pull_request:
     branches:
       - main
@@ -15,8 +15,10 @@ on:
 
 env:
   REGISTRY: docker.io
-  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  REGISTRY_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
   REGISTRY_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
+  SONARQUBE_URL: ${{ secrets.SONARQUBE_URL }}
+  SONARQUBE_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
 
 jobs:
   # ============================================================================
@@ -384,7 +386,7 @@ jobs:
                   "type": "header",
                   "text": {
                     "type": "plain_text",
-                    "text": "🚀 CI/CD Pipeline Update"
+                    "text": "CI/CD Pipeline Update"
                   }
                 },
                 {
@@ -404,7 +406,7 @@ jobs:
                     },
                     {
                       "type": "mrkdwn",
-                      "text": "*Build Status:*\n✅ Passed"
+                      "text": "*Build Status:*\n Passed"
                     }
                   ]
                 }
