@@ -1,27 +1,21 @@
 terraform {
-  required_version = ">= 1.0"
+  required_version = ">= 1.5.0"
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "~> 2.23"
-    }
-    helm = {
-      source  = "hashicorp/helm"
-      version = "~> 2.11"
-    }
   }
 
-  backend "s3" {
-    bucket         = "food-delivery-tf-state"
-    key            = "prod/terraform.tfstate"
-    region         = "us-east-1"
-    encrypt        = true
-    dynamodb_table = "terraform-locks"
-  }
+  # Uncomment for production - configure S3 backend
+  # backend "s3" {
+  #   bucket         = "food-delivery-tf-state"
+  #   key            = "kubernetes/terraform.tfstate"
+  #   region         = "us-east-1"
+  #   encrypt        = true
+  #   dynamodb_table = "terraform-locks"
+  # }
 }
 
 provider "aws" {
@@ -31,22 +25,9 @@ provider "aws" {
     tags = {
       Environment = var.environment
       ManagedBy   = "Terraform"
-      Project     = "FoodDelivery"
+      Project     = "FoodDeliveryPlatform"
+      CreatedAt   = timestamp()
     }
-  }
-}
-
-provider "kubernetes" {
-  host                   = data.aws_eks_cluster.cluster.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
-  token                  = data.aws_eks_cluster_auth.cluster.token
-}
-
-provider "helm" {
-  kubernetes {
-    host                   = data.aws_eks_cluster.cluster.endpoint
-    cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
-    token                  = data.aws_eks_cluster_auth.cluster.token
   }
 }
 
@@ -71,32 +52,7 @@ resource "aws_internet_gateway" "main" {
 }
 
 # Subnets
-resource "aws_subnet" "public" {
-  count                   = length(var.availability_zones)
-  vpc_id                  = aws_vpc.main.id
-  cidr_block              = var.public_subnets[count.index]
-  availability_zone       = var.availability_zones[count.index]
-  map_public_ip_on_launch = true
-
-  tags = {
-    Name                                           = "${var.cluster_name}-public-${count.index + 1}"
-    "kubernetes.io/role/elb"                       = "1"
-    "kubernetes.io/cluster/${var.cluster_name}"    = "shared"
-  }
-}
-
-resource "aws_subnet" "private" {
-  count             = length(var.availability_zones)
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = var.private_subnets[count.index]
-  availability_zone = var.availability_zones[count.index]
-
-  tags = {
-    Name                                         = "${var.cluster_name}-private-${count.index + 1}"
-    "kubernetes.io/role/internal-elb"           = "1"
-    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
-  }
-}
+resource "aws_subnet" "public" {\n  count                   = length(var.availability_zones)\n  vpc_id                  = aws_vpc.main.id\n  cidr_block              = var.public_subnets[count.index]\n  availability_zone       = var.availability_zones[count.index]\n  map_public_ip_on_launch = true\n\n  tags = {\n    Name = \"${var.cluster_name}-public-subnet-${count.index + 1}\"\n    Type = \"Public\"\n  }\n}\n\nresource \"aws_subnet\" \"private\" {\n  count             = length(var.availability_zones)\n  vpc_id            = aws_vpc.main.id\n  cidr_block        = var.private_subnets[count.index]\n  availability_zone = var.availability_zones[count.index]\n\n  tags = {\n    Name = \"${var.cluster_name}-private-subnet-${count.index + 1}\"\n    Type = \"Private\"\n  }\n}"
 
 # Elastic IPs for NAT Gateways
 resource "aws_eip" "nat" {
